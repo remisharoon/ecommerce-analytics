@@ -1,0 +1,119 @@
+version: '2'
+services:
+
+  zookeeper-ea:
+    container_name: zookeeper-ea
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka1:
+    container_name: kafka1
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper-ea
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-ea:2181
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka1:9092,OUTSIDE://kafka1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://kafka1:9092,OUTSIDE://kafka1:9192
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    ports:
+      - "9092:9092"
+
+  kafka2:
+    container_name: kafka2
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper-ea
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-ea:2181
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka2:9093,OUTSIDE://kafka2:9193
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://kafka2:9093,OUTSIDE://kafka2:9193
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    ports:
+      - "9093:9093"
+#
+#  kafka3:
+#    container_name: kafka3
+#    image: confluentinc/cp-kafka:latest
+#    depends_on:
+#      - zookeeper
+#    environment:
+#      KAFKA_BROKER_ID: 3
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka3:9094,OUTSIDE://localhost:9094
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+#      KAFKA_LISTENERS: INSIDE://0.0.0.0:9094,OUTSIDE://0.0.0.0:9094
+#      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+#    ports:
+#      - "9094:9094"
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    ports:
+      - "9001:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka1:9092,kafka2:9093,kafka3:9094
+      JVM_OPTS: "-Xms32M -Xmx64M"
+      SERVER_SERVLET_CONTEXTPATH: "/"
+    depends_on:
+      - kafka1
+#      - kafka2
+#      - kafka3
+
+  clickhouse:
+    container_name: clickhouse
+    image: yandex/clickhouse-server:latest
+    ports:
+      - "8124:8123"
+
+  mysql-ea:
+    container_name: mysql-ea
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ecomm
+      MYSQL_USER: ecomm_data
+      MYSQL_PASSWORD: password
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  metabase:
+    image: metabase/metabase:latest
+    ports:
+      - "3002:3000"
+    volumes:
+      - metabase-data:/metabase
+
+  datagen:
+    build:
+      context: .
+      dockerfile: DockerfileDatagen
+    environment:
+      PYTHONPATH: /usr/src/app
+    ports:
+      - "3001:3000"
+    volumes:
+      - ../src:/usr/src/app/src
+    command: tail -f /dev/null
+
+volumes:
+  mysql-data:
+  metabase-data:
