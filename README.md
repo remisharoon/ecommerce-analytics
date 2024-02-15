@@ -1,3 +1,4 @@
+
 # E-Commerce Analytics Demo Project
 
 ## Overview
@@ -23,6 +24,58 @@ This open-source E-Commerce Analytics Demo Project showcases a powerful, integra
 
 1. **Clone the Repository**
 
-   ```bash
+   ```
    git clone https://github.com/remisharoon/ecommerce-analytics.git
    cd ecommerce-analytics
+   ```
+
+2. **Build and Run the Services**
+
+   Use Docker Compose to build and start the services:
+
+   ```
+   docker-compose up -d
+   ```
+
+3. **Access the Metabase Dashboard**
+
+   Open your browser and navigate to `http://localhost:3002` to access Metabase and explore the analytics dashboards.
+
+4. **Generate Sample Data**
+
+   Execute the data generator service to populate your environment with e-commerce transaction data.
+
+### Configuration
+
+Detailed instructions on configuring each service (Kafka, Zookeeper, ClickHouse, MySQL, Metabase) are provided in the respective sections below.
+
+## Services Configuration
+
+### Kafka and Zookeeper
+
+- **Kafka**: Configured for real-time data streaming with support for multiple brokers.
+- **Zookeeper**: Manages Kafka's cluster coordination and configuration.
+
+### ClickHouse
+
+- **ClickHouse**: Optimized for fast analytical queries, ideal for time-series data.
+
+### MySQL
+
+- **MySQL**: Stores transactional data and user information, configured with initial schema and data setup.
+
+### Metabase
+
+- **Metabase**: Provides interactive data visualization and analytics tools.
+
+## Contributing
+
+We welcome contributions from the community! Whether you're interested in fixing bugs, adding new features, or improving documentation, please follow our [contribution guidelines](CONTRIBUTING.md).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
+
+## Support
+
+If you need help or have any questions, please open an issue in the project's GitHub issue tracker.
